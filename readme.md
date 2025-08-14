@@ -36,6 +36,11 @@ uv run mcp-simple-auth-rs --port=8001 --auth-server=http://localhost:9000 --tran
 cd simple-auth-client
 MCP_SERVER_PORT=8001 MCP_TRANSPORT_TYPE=streamable_http uv run mcp-simple-auth-client
 ```
+
+Sample Video
+
+https://github.com/user-attachments/assets/da5ee1e9-327d-4805-87e7-e8bb2ab4cc62
+
 ---
 
 ### Project Structure
@@ -73,7 +78,4 @@ oauth-demo/
 ---
 
 Note: This oAuth flow contains hardcoded vatriables for demonstration. Don't use it as its for production! 
-
-
-
 
