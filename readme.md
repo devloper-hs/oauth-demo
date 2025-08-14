@@ -1,6 +1,6 @@
 # MCP OAuth Demo
 
-A demonstration of OAuth 2.0 authentication with the Model Context Protocol (MCP), showcasing separated Authorization Server/Resource Server architecture using oAuths
+A demonstration of OAuth 2.0 authentication with the Model Context Protocol (MCP), showcasing separated Authorization server / Resource server architecture using oAuths
 
 ---
 
@@ -73,6 +73,7 @@ oauth-demo/
 ---
 
 Note: This oAuth flow contains hardcoded vatriables for demonstration. Don't use it as its for production! 
+
 
 
 
