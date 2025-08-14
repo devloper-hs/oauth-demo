@@ -30,7 +30,7 @@ cd simple-auth
 uv run mcp-simple-auth-rs --port=8001 --auth-server=http://localhost:9000 --transport=streamable-http
 ```
 
-3. Run the ClientMCP_SERVER_PORT=8001 MCP_TRANSPORT_TYPE=streamable_http uv run mcp-simple-auth-client
+3. Run the Client
 
 ```bash
 cd simple-auth-client
@@ -73,5 +73,6 @@ oauth-demo/
 ---
 
 Note: This oAuth flow contains hardcoded vatriables for demonstration. Don't use it as its for production! 
+
 
 
