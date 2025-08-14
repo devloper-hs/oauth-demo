@@ -1,6 +1,6 @@
 # MCP OAuth Demo
 
-A demonstration of OAuth 2.0 authentication with the Model Context Protocol (MCP), showcasing separated Authorization server / Resource server architecture using oAuths
+A demonstration of OAuth 2.0 authentication with the Model Context Protocol (MCP), showcasing separated Authorization server / Resource server architecture using oAuths 
 
 ---
 
@@ -15,6 +15,8 @@ This project demonstrates how to implement OAuth 2.0 authentication for MCP serv
 ---
 
 ## How to Run
+
+Ensure you have `python3` & `uv` installed. Then,
 
 1. Start the Authorization Server
 
@@ -78,4 +80,5 @@ oauth-demo/
 ---
 
 Note: This oAuth flow contains hardcoded vatriables for demonstration. Don't use it as its for production! 
+
 
