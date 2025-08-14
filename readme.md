@@ -18,28 +18,38 @@ This project demonstrates how to implement OAuth 2.0 authentication for MCP serv
 
 Ensure you have `python3` & `uv` installed. Then,
 
-1. Start the Authorization Server
+0. Clone the repo
+```bash
+git clone https://github.com/devloper-hs/oauth-demo.git
+```
+
+1. Change the directory
+```bash
+cd oauth-demo
+```
+
+2. Start the Authorization Server
 
 ```bash
 cd simple-auth
 uv run mcp-simple-auth-as --port=9000
 ```
 
-2. Start the Resource Server
+3. Start the Resource Server
 
 ```bash
 cd simple-auth
 uv run mcp-simple-auth-rs --port=8001 --auth-server=http://localhost:9000 --transport=streamable-http
 ```
 
-3. Run the Client
+4. Run the Client
 
 ```bash
 cd simple-auth-client
 MCP_SERVER_PORT=8001 MCP_TRANSPORT_TYPE=streamable_http uv run mcp-simple-auth-client
 ```
 
-Sample Video
+5. Sample Video
 
 https://github.com/user-attachments/assets/da5ee1e9-327d-4805-87e7-e8bb2ab4cc62
 
@@ -80,5 +90,6 @@ oauth-demo/
 ---
 
 Note: This oAuth flow contains hardcoded vatriables for demonstration. Don't use it as its for production! 
+
 
 
