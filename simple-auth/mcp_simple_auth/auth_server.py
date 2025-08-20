@@ -96,6 +96,23 @@ def create_authorization_server(server_settings: AuthServerSettings, auth_settin
 
     routes.append(Route("/login/callback", endpoint=login_callback_handler, methods=["POST"]))
 
+    # Add consent page route (GET)
+    async def consent_page_handler(request: Request) -> Response:
+        """Show consent form."""
+        consent_token = request.query_params.get("token")
+        if not consent_token:
+            raise HTTPException(400, "Missing consent token")
+        return await oauth_provider.get_consent_page(consent_token)
+
+    routes.append(Route("/consent", endpoint=consent_page_handler, methods=["GET"]))
+
+    # Add consent callback route (POST)
+    async def consent_callback_handler(request: Request) -> Response:
+        """Handle consent form submission."""
+        return await oauth_provider.handle_consent_callback(request)
+
+    routes.append(Route("/consent/callback", endpoint=consent_callback_handler, methods=["POST"]))
+
     # Add token introspection endpoint (RFC 7662) for Resource Servers
     async def introspect_handler(request: Request) -> Response:
         """
