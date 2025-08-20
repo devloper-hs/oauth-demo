@@ -51,7 +51,7 @@ MCP_SERVER_PORT=8001 MCP_TRANSPORT_TYPE=streamable_http uv run mcp-simple-auth-c
 
 5. Sample Video
 
-https://github.com/user-attachments/assets/da5ee1e9-327d-4805-87e7-e8bb2ab4cc62
+https://github.com/user-attachments/assets/d4993185-ff07-4808-afe3-20267be9914c
 
 ---
 
