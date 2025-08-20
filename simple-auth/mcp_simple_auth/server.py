@@ -10,6 +10,7 @@ This is not a production-ready implementation.
 
 import datetime
 import logging
+import random
 from typing import Any, Literal
 
 import click
@@ -99,6 +100,132 @@ def create_resource_server(settings: ResourceServerSettings) -> FastMCP:
             "timezone": "UTC",  # Simplified for demo
             "timestamp": now.timestamp(),
             "formatted": now.strftime("%Y-%m-%d %H:%M:%S"),
+        }
+
+    @app.tool()
+    async def calculator(expression: str) -> dict[str, Any]:
+        """
+        Perform mathematical calculations.
+        
+        This tool evaluates mathematical expressions safely.
+        Supports basic arithmetic operations (+, -, *, /), parentheses, and common math functions.
+        
+        Args:
+            expression: Mathematical expression to evaluate (e.g., "2 + 3 * 4", "sqrt(16)", "sin(3.14159/2)")
+        """
+        import math
+        
+        try:
+            # Create a safe namespace for evaluation
+            safe_dict = {
+                "__builtins__": {},
+                # Math constants
+                "pi": math.pi,
+                "e": math.e,
+                # Basic math functions
+                "abs": abs,
+                "round": round,
+                "min": min,
+                "max": max,
+                "sum": sum,
+                # Advanced math functions
+                "sqrt": math.sqrt,
+                "pow": pow,
+                "exp": math.exp,
+                "log": math.log,
+                "log10": math.log10,
+                "sin": math.sin,
+                "cos": math.cos,
+                "tan": math.tan,
+                "asin": math.asin,
+                "acos": math.acos,
+                "atan": math.atan,
+                "degrees": math.degrees,
+                "radians": math.radians,
+                "ceil": math.ceil,
+                "floor": math.floor,
+                "factorial": math.factorial,
+            }
+            
+            # Evaluate the expression safely
+            result = eval(expression, safe_dict, {})
+            
+            return {
+                "expression": expression,
+                "result": result,
+                "type": type(result).__name__,
+                "success": True
+            }
+            
+        except ZeroDivisionError:
+            return {
+                "expression": expression,
+                "error": "Division by zero",
+                "success": False
+            }
+        except (SyntaxError, NameError, TypeError, ValueError) as e:
+            return {
+                "expression": expression,
+                "error": f"Invalid expression: {str(e)}",
+                "success": False
+            }
+        except Exception as e:
+            return {
+                "expression": expression,
+                "error": f"Calculation error: {str(e)}",
+                "success": False
+            }
+
+    @app.tool()
+    async def get_weather(city: str, country: str = "US") -> dict[str, Any]:
+        """
+        Get current weather information for a city.
+        
+        This is a demo weather tool that returns simulated weather data.
+        In a real implementation, this would connect to a weather API like OpenWeatherMap.
+        
+        Args:
+            city: Name of the city to get weather for
+            country: Country code (default: "US")
+        """
+        # Simulate weather data (in a real implementation, you'd call a weather API)
+        weather_conditions = [
+            "sunny", "partly cloudy", "cloudy", "rainy", "stormy", "snowy", "foggy"
+        ]
+        
+        # Generate realistic temperature ranges based on common city names
+        temp_ranges = {
+            "new york": (15, 25),
+            "london": (8, 18),
+            "tokyo": (12, 22),
+            "sydney": (18, 28),
+            "mumbai": (25, 35),
+            "cairo": (20, 35),
+            "moscow": (-5, 10),
+            "reykjavik": (0, 8),
+        }
+        
+        city_lower = city.lower()
+        temp_range = temp_ranges.get(city_lower, (10, 25))  # Default range
+        
+        # Generate simulated data
+        temperature = random.randint(temp_range[0], temp_range[1])
+        condition = random.choice(weather_conditions)
+        humidity = random.randint(40, 90)
+        wind_speed = random.randint(5, 25)
+        
+        return {
+            "city": city.title(),
+            "country": country.upper(),
+            "temperature": {
+                "celsius": temperature,
+                "fahrenheit": round(temperature * 9/5 + 32, 1)
+            },
+            "condition": condition,
+            "humidity": f"{humidity}%",
+            "wind_speed": f"{wind_speed} km/h",
+            "last_updated": datetime.datetime.now().isoformat(),
+            "note": "This is simulated weather data for demonstration purposes"
         }
 
     return app
