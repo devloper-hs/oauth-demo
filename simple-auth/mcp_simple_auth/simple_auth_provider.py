@@ -11,6 +11,7 @@ NOTE: This is not a production-ready implementation.
 import logging
 import secrets
 import time
+from pathlib import Path
 from typing import Any
 
 from pydantic import AnyHttpUrl
@@ -43,6 +44,37 @@ class SimpleAuthSettings(BaseSettings):
 
     # MCP OAuth scope
     mcp_scope: str = "user"
+
+
+def load_template(template_name: str, **kwargs) -> str:
+    """Load and render HTML template with simple string replacement."""
+    template_path = Path(__file__).parent / "templates" / template_name
+    
+    if not template_path.exists():
+        raise FileNotFoundError(f"Template not found: {template_path}")
+    
+    with open(template_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # Simple template rendering with string replacement
+    for key, value in kwargs.items():
+        if isinstance(value, list):
+            # Handle tools list rendering
+            if key == 'tools':
+                tools_html = ""
+                for tool in value:
+                    tools_html += f"""
+                    <div class="tool-item">
+                        <div class="tool-name">🔧 {tool['name']}</div>
+                        <div class="tool-description">{tool['description']}</div>
+                    </div>
+                    """
+                content = content.replace("{% for tool in tools %}", "").replace("{% endfor %}", tools_html)
+                continue
+        
+        content = content.replace("{{" + key + "}}", str(value))
+    
+    return content
 
 
 class SimpleOAuthProvider(OAuthAuthorizationServerProvider[AuthorizationCode, RefreshToken, AccessToken]):
@@ -99,42 +131,29 @@ class SimpleOAuthProvider(OAuthAuthorizationServerProvider[AuthorizationCode, Re
         if not state:
             raise HTTPException(400, "Missing state parameter")
 
-        # Create simple login form HTML
-        html_content = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>MCP Demo Authentication</title>
-            <style>
-                body {{ font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; }}
-                .form-group {{ margin-bottom: 15px; }}
-                input {{ width: 100%; padding: 8px; margin-top: 5px; }}
-                button {{ background-color: #4CAF50; color: white; padding: 10px 15px; border: none; cursor: pointer; }}
-            </style>
-        </head>
-        <body>
-            <h2>MCP Demo Authentication</h2>
-            <p>Enter your Username & Password to Authenticate. Use the demo credentials below:</p>
-            <p><strong>Username:</strong> devloper_harsh<br>
-            <strong>Password:</strong> admin@2000</p>
-
-            <form action="{self.server_url.rstrip("/")}/login/callback" method="post">
-                <input type="hidden" name="state" value="{state}">
-                <div class="form-group">
-                    <label>Username:</label>
-                    <input type="text" name="username" value="demo_user" required>
-                </div>
-                <div class="form-group">
-                    <label>Password:</label>
-                    <input type="password" name="password" value="demo_password" required>
-                </div>
-                <button type="submit">Sign In</button>
-            </form>
-        </body>
-        </html>
-        """
-
-        return HTMLResponse(content=html_content)
+        try:
+            html_content = load_template(
+                "login.html",
+                state=state,
+                callback_url=f"{self.server_url.rstrip('/')}/login/callback"
+            )
+            return HTMLResponse(content=html_content)
+        except FileNotFoundError as e:
+            logger.error(f"Template error: {e}")
+            # Fallback to simple HTML if template not found
+            return HTMLResponse(content=f"""
+            <!DOCTYPE html>
+            <html><head><title>Login</title></head>
+            <body>
+                <h2>MCP Login</h2>
+                <form action="{self.server_url.rstrip('/')}/login/callback" method="post">
+                    <input type="hidden" name="state" value="{state}">
+                    <p>Username: <input type="text" name="username" value="devloper_harsh"></p>
+                    <p>Password: <input type="password" name="password" value="admin@2000"></p>
+                    <p><button type="submit">Sign In</button></p>
+                </form>
+            </body></html>
+            """)
 
     async def get_consent_page(self, consent_token: str) -> HTMLResponse:
         """Generate consent page HTML for the given consent token."""
@@ -159,148 +178,44 @@ class SimpleOAuthProvider(OAuthAuthorizationServerProvider[AuthorizationCode, Re
             }
         ]
 
-        tools_html = ""
-        for tool in available_tools:
-            tools_html += f"""
-            <div style="border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 5px;">
-                <strong>{tool['name']}</strong><br>
-                <span style="color: #666; font-size: 14px;">{tool['description']}</span>
-            </div>
-            """
-
-        html_content = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>MCP Resource Access Consent</title>
-            <style>
-                body {{ 
-                    font-family: Arial, sans-serif; 
-                    max-width: 600px; 
-                    margin: 0 auto; 
-                    padding: 20px; 
-                    background-color: #f9f9f9;
-                }}
-                .container {{
-                    background: white;
-                    padding: 30px;
-                    border-radius: 10px;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                }}
-                .header {{
-                    text-align: center;
-                    margin-bottom: 30px;
-                }}
-                .client-info {{
-                    background: #f0f8ff;
-                    padding: 15px;
-                    border-radius: 5px;
-                    margin-bottom: 20px;
-                }}
-                .permissions {{
-                    margin: 20px 0;
-                }}
-                .tool-list {{
-                    max-height: 300px;
-                    overflow-y: auto;
-                    border: 1px solid #eee;
-                    border-radius: 5px;
-                    padding: 10px;
-                }}
-                .disclaimer {{
-                    background: #fff3cd;
-                    border: 1px solid #ffeaa7;
-                    padding: 10px;
-                    border-radius: 5px;
-                    margin: 20px 0;
-                    font-size: 14px;
-                }}
-                .buttons {{
-                    text-align: center;
-                    margin-top: 30px;
-                }}
-                .approve-btn {{
-                    background-color: #28a745;
-                    color: white;
-                    padding: 12px 30px;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 16px;
-                    margin-right: 15px;
-                }}
-                .approve-btn:hover {{
-                    background-color: #218838;
-                }}
-                .deny-btn {{
-                    background-color: #dc3545;
-                    color: white;
-                    padding: 12px 30px;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-size: 16px;
-                }}
-                .deny-btn:hover {{
-                    background-color: #c82333;
-                }}
-                .user-info {{
-                    background: #e8f5e8;
-                    padding: 10px;
-                    border-radius: 5px;
-                    margin-bottom: 20px;
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h2>🔐 Resource Access Consent</h2>
-                    <p>An application is requesting access to your MCP resources</p>
-                </div>
-
-                <div class="user-info">
-                    <strong>Authenticated User:</strong> {consent_data['username']}
-                </div>
-
-                <div class="client-info">
-                    <h3>Application Details</h3>
-                    <p><strong>Client:</strong> {consent_data['client_name']}</p>
-                    <p><strong>Requesting Access To:</strong> MCP Tools and Resources</p>
-                </div>
-
-                <div class="permissions">
-                    <h3>📋 Available Tools & Resources</h3>
-                    <p>This application will be able to access the following tools on your behalf:</p>
-                    <div class="tool-list">
-                        {tools_html}
-                    </div>
-                </div>
-
-                <div class="disclaimer">
-                    <strong>⚠️ Important:</strong> Only approve resource access for applications you trust. 
-                    The application will be able to execute these tools and access their data using your credentials.
-                </div>
-
-                <div class="buttons">
-                    <form action="{self.server_url.rstrip("/")}/consent/callback" method="post" style="display: inline;">
-                        <input type="hidden" name="consent_token" value="{consent_token}">
-                        <input type="hidden" name="action" value="approve">
-                        <button type="submit" class="approve-btn">✅ Approve Access</button>
-                    </form>
-                    
-                    <form action="{self.server_url.rstrip("/")}/consent/callback" method="post" style="display: inline;">
-                        <input type="hidden" name="consent_token" value="{consent_token}">
-                        <input type="hidden" name="action" value="deny">
-                        <button type="submit" class="deny-btn">❌ Deny Access</button>
-                    </form>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-
-        return HTMLResponse(content=html_content)
+        try:
+            html_content = load_template(
+                "consent.html",
+                username=consent_data['username'],
+                client_name=consent_data['client_name'],
+                consent_token=consent_token,
+                callback_url=f"{self.server_url.rstrip('/')}/consent/callback",
+                tools=available_tools
+            )
+            return HTMLResponse(content=html_content)
+        except FileNotFoundError as e:
+            logger.error(f"Template error: {e}")
+            # Fallback to simple HTML if template not found
+            tools_html = ""
+            for tool in available_tools:
+                tools_html += f"<div><strong>{tool['name']}</strong><br>{tool['description']}</div><br>"
+            
+            return HTMLResponse(content=f"""
+            <!DOCTYPE html>
+            <html><head><title>Consent</title></head>
+            <body>
+                <h2>Resource Access Consent</h2>
+                <p>User: {consent_data['username']}</p>
+                <p>Client: {consent_data['client_name']}</p>
+                <h3>Tools:</h3>
+                {tools_html}
+                <form action="{self.server_url.rstrip('/')}/consent/callback" method="post">
+                    <input type="hidden" name="consent_token" value="{consent_token}">
+                    <input type="hidden" name="action" value="approve">
+                    <button type="submit">Approve</button>
+                </form>
+                <form action="{self.server_url.rstrip('/')}/consent/callback" method="post">
+                    <input type="hidden" name="consent_token" value="{consent_token}">
+                    <input type="hidden" name="action" value="deny">
+                    <button type="submit">Deny</button>
+                </form>
+            </body></html>
+            """)
 
     async def handle_login_callback(self, request: Request) -> Response:
         """Handle login form submission callback."""
@@ -362,70 +277,28 @@ class SimpleOAuthProvider(OAuthAuthorizationServerProvider[AuthorizationCode, Re
             # Clean up consent data but keep state mapping for potential retry
             del self.pending_consent[consent_token]
             
-            # Create a denial page with option to retry consent
+            # Create retry URL
             state_data = self.state_mapping.get(state)
             retry_url = f"{self.server_url.rstrip('/')}/login?state={state}&client_id={state_data['client_id']}" if state_data else "#"
             
-            return HTMLResponse(content=f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Access Denied</title>
-                <style>
-                    body {{ 
-                        font-family: Arial, sans-serif; 
-                        max-width: 500px; 
-                        margin: 50px auto; 
-                        padding: 20px; 
-                        text-align: center;
-                        background-color: #f9f9f9;
-                    }}
-                    .container {{
-                        background: white;
-                        padding: 30px;
-                        border-radius: 10px;
-                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                    }}
-                    .error {{ 
-                        color: #dc3545; 
-                        margin-bottom: 20px;
-                    }}
-                    .message {{
-                        margin: 20px 0;
-                        line-height: 1.6;
-                    }}
-                    .retry-btn {{ 
-                        background-color: #007bff; 
-                        color: white; 
-                        padding: 12px 24px; 
-                        border: none; 
-                        border-radius: 5px; 
-                        cursor: pointer; 
-                        margin: 10px;
-                        text-decoration: none;
-                        display: inline-block;
-                        font-size: 16px;
-                    }}
-                    .retry-btn:hover {{
-                        background-color: #0056b3;
-                    }}
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <h2 class="error">❌ Access Denied</h2>
-                    <div class="message">
-                        <p>You have denied access to the requested resources.</p>
-                        <p>To use the application, you must approve the resource access request.</p>
-                        <p><strong>Would you like to try again?</strong></p>
-                    </div>
-                    <div>
-                        <a href="{retry_url}" class="retry-btn">🔄 Try Again</a>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """, status_code=403)
+            try:
+                html_content = load_template(
+                    "access_denied.html",
+                    retry_url=retry_url
+                )
+                return HTMLResponse(content=html_content, status_code=403)
+            except FileNotFoundError as e:
+                logger.error(f"Template error: {e}")
+                # Fallback to simple HTML
+                return HTMLResponse(content=f"""
+                <!DOCTYPE html>
+                <html><head><title>Access Denied</title></head>
+                <body>
+                    <h2>Access Denied</h2>
+                    <p>You have denied access to the requested resources.</p>
+                    <p><a href="{retry_url}">Try Again</a></p>
+                </body></html>
+                """, status_code=403)
 
         elif action == "approve":
             # Clean up consent data

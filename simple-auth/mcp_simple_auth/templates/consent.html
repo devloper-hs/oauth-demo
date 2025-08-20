@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resource Access Consent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .consent-container {
+            max-width: 700px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h2 {
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .user-info {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .client-info {
+            background: #f0f8ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .client-info h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .client-info p {
+            margin-bottom: 8px;
+            color: #555;
+        }
+        
+        .permissions {
+            margin-bottom: 25px;
+        }
+        
+        .permissions h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .permissions > p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .tool-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            background: #fafbfc;
+        }
+        
+        .tool-item {
+            background: white;
+            border: 1px solid #e1e5e9;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            border-left: 4px solid #28a745;
+        }
+        
+        .tool-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transform: translateX(2px);
+        }
+        
+        .tool-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .tool-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+        
+        .tool-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .disclaimer {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border: 1px solid #ffeaa7;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .disclaimer strong {
+            color: #856404;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            min-width: 140px;
+        }
+        
+        .approve-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+        
+        .approve-btn:hover {
+            background: linear-gradient(135deg, #218838, #1fa786);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+        }
+        
+        .deny-btn {
+            background: linear-gradient(135deg, #dc3545, #e83e8c);
+            color: white;
+        }
+        
+        .deny-btn:hover {
+            background: linear-gradient(135deg, #c82333, #d91a72);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        @media (max-width: 768px) {
+            .consent-container {
+                margin: 10px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="consent-container">
+        <div class="header">
+            <h2>🔐 Resource Access Consent</h2>
+            <p>An application is requesting access to your MCP resources</p>
+        </div>
+        
+        <div class="content">
+            <div class="user-info">
+                <strong>✅ Authenticated User:</strong> {{username}}
+            </div>
+            
+            <div class="client-info">
+                <h3>📱 Application Details</h3>
+                <p><strong>Client:</strong> {{client_name}}</p>
+                <p><strong>Requesting Access To:</strong> MCP Tools and Resources</p>
+            </div>
+            
+            <div class="permissions">
+                <h3>📋 Available Tools & Resources</h3>
+                <p>This application will be able to access the following tools on your behalf:</p>
+                <div class="tool-list">
+                    {% for tool in tools %}
+                    <div class="tool-item">
+                        <div class="tool-name">🔧 {{tool.name}}</div>
+                        <div class="tool-description">{{tool.description}}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="disclaimer">
+                <strong>⚠️ Important Security Notice:</strong> Only approve resource access for applications you trust. 
+                The application will be able to execute these tools and access their data using your credentials. 
+                Make sure you understand what each tool does before granting access.
+            </div>
+            
+            <div class="buttons">
+                <form action="{{callback_url}}" method="post" style="display: inline;">
+                    <input type="hidden" name="consent_token" value="{{consent_token}}">
+                    <input type="hidden" name="action" value="approve">
+                    <button type="submit" class="btn approve-btn">✅ Approve Access</button>
+                </form>
+                
+                <form action="{{callback_url}}" method="post" style="display: inline;">
+                    <input type="hidden" name="consent_token" value="{{consent_token}}">
+                    <input type="hidden" name="action" value="deny">
+                    <button type="submit" class="btn deny-btn">❌ Deny Access</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
