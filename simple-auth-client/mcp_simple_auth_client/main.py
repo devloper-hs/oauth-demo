@@ -63,7 +63,19 @@ class CallbackHandler(BaseHTTPRequestHandler):
             self.send_header("Content-type", "text/html")
             self.end_headers()
             self.wfile.write(b"""
-            <html>
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Authorization Successful</title>
+                <style>
+                    body { font-family: Arial, sans-serif; background: #f8f8f8; color: #222; text-align: center; margin-top: 80px; }
+                    h1 { color: #2e7d32; }
+                    p { font-size: 1.2em; }
+                </style>
+            </head>
             <body>
                 <h1>Authorization Successful!</h1>
                 <p>You can close this window and return to the terminal.</p>
@@ -78,7 +90,19 @@ class CallbackHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(
                 f"""
-            <html>
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta http-equiv="X-UA-Compatible" content="IE=edge">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Authorization Failed</title>
+                <style>
+                    body {{ font-family: Arial, sans-serif; background: #fff3f3; color: #b71c1c; text-align: center; margin-top: 80px; }}
+                    h1 {{ color: #b71c1c; }}
+                    p {{ font-size: 1.2em; }}
+                </style>
+            </head>
             <body>
                 <h1>Authorization Failed</h1>
                 <p>Error: {query_params["error"][0]}</p>
